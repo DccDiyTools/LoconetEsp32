@@ -1,0 +1,27 @@
+** Drc report for /home/dvilas/workdir/Interfaces/LocoBufferEsp32/board/LocoBufferEsp32Craddle/LocoBuffer.kicad_pcb **
+** Created on 2023-08-18 10:35:58 **
+
+** Found 5 DRC violations **
+[lib_footprint_issues]: The current configuration does not include the library 'Espressif'.
+    Local override; Severity: warning
+    @(119.4500 mm, 117.9034 mm): Footprint U5
+[lib_footprint_mismatch]: Footprint 'LED_LiteOn_LTST-C19HE1WT' does not match copy in library 'LED_SMD'.
+    Local override; Severity: warning
+    @(66.0000 mm, 116.0000 mm): Footprint D8
+[lib_footprint_mismatch]: Footprint '128x64OLED' does not match copy in library 'LocoNetInterface'.
+    Local override; Severity: warning
+    @(137.2500 mm, 90.6000 mm): Footprint J1
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; Severity: warning
+    @(30.0000 mm, 120.0000 mm): Line on Edge.Cuts
+    @(115.7199 mm, 119.0238 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; Severity: warning
+    @(30.0000 mm, 120.0000 mm): Line on Edge.Cuts
+    @(97.7367 mm, 124.9166 mm): Line on F.Silkscreen
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** End of Report **

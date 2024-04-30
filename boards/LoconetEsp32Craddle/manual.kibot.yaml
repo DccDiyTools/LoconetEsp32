@@ -1,0 +1,60 @@
+kibot:
+  version: 1
+
+preflight:
+  run_erc: false
+  erc_warnings: false
+  update_xml: false
+  run_drc: false
+  check_zone_fills: false
+  ignore_unconnected: false
+
+outputs:
+
+  - name: 'top'
+    comment: 'Exports the PCB as a 2D model (SVG, PNG or JPG).'
+    type: 'pcbdraw'
+    dir: './'
+    options:
+      bottom: false
+      margin:
+        left: 1
+        right: 1
+        top: 2
+        bottom: 4
+      dpi: 300
+      format: 'png'
+      highlight: []
+      libs: [kicad-default,pcbdraw]
+      mirror: false
+      no_drillholes: false
+      output: '%f-%i%v.%x'
+      placeholder: false
+      show_components: all
+ #     remap:
+ #     show_components: none
+      style: 'manual/set-purple-hasl.json' 
+
+  - name: 'bottom'
+    comment: 'Exports the PCB as a 2D model (SVG, PNG or JPG).'
+    type: 'pcbdraw'
+    dir: './'
+    options:
+      bottom: true
+      margin:
+        left: 1
+        right: 1
+        top: 1
+        bottom: 1
+      dpi: 300
+      format: 'png'
+      highlight: []
+      libs: [kicad-default,pcbdraw]
+      mirror: false
+      no_drillholes: false
+      output: '%f-%i%v.%x'
+      placeholder: false
+      show_components: all
+ #     remap:
+ #     show_components: none
+      style: 'manual/set-purple-hasl.json' 
