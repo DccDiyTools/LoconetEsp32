@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang='en'>
+<!-- 
+https://github.com/khoih-prog/ESPAsync_WiFiManager/blob/master/src/ESPAsync_WiFiManager-Impl.h
+https://github.com/khoih-prog/ESPAsync_WiFiManager/blob/master/src/ESPAsync_WiFiManager.hpp
+-->
+
+<head>
+    <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no' />
+    <title>LocoBuffer ESP32</title>
+    <style>
+        div {
+            padding: 2px;
+            font-size: 1em;
+        }
+
+        body,
+        textarea,
+        input,
+        select {
+            background: 0;
+            border-radius: 0;
+            font: 16px sans-serif;
+            margin: 0
+        }
+
+        textarea,
+        input,
+        select {
+            outline: 0;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            padding: 8px;
+            width: 90%
+        }
+
+        .btn a {
+            text-decoration: none
+        }
+
+        .container {
+            margin: auto;
+            width: 90%
+        }
+
+        @media(min-width:1200px) {
+            .container {
+                margin: auto;
+                width: 30%
+            }
+        }
+
+        @media(min-width:768px) and (max-width:1200px) {
+            .container {
+                margin: auto;
+                width: 50%
+            }
+        }
+
+        .btn,
+        h2 {
+            font-size: 2em
+        }
+
+        h1 {
+            font-size: 3em
+        }
+
+        .btn {
+            background: #0ae;
+            border-radius: 4px;
+            border: 0;
+            color: #fff;
+            cursor: pointer;
+            display: inline-block;
+            margin: 2px 0;
+            padding: 10px 14px 11px;
+            width: 100%
+        }
+
+        .btn:hover {
+            background: #09d
+        }
+
+        .btn:active,
+        .btn:focus {
+            background: #08b
+        }
+
+        label>* {
+            display: inline
+        }
+
+        form>* {
+            display: block;
+            margin-bottom: 10px
+        }
+
+        textarea:focus,
+        input:focus,
+        select:focus {
+            border-color: #5ab
+        }
+
+        .msg {
+            background: #def;
+            border-left: 5px solid #59d;
+            padding: 1.5em
+        }
+
+        .q {
+            float: right;
+            width: 64px;
+            text-align: right
+        }
+
+        .l {
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAALVBMVEX///8EBwfBwsLw8PAzNjaCg4NTVVUjJiZDRUUUFxdiZGSho6OSk5Pg4eFydHTCjaf3AAAAZElEQVQ4je2NSw7AIAhEBamKn97/uMXEGBvozkWb9C2Zx4xzWykBhFAeYp9gkLyZE0zIMno9n4g19hmdY39scwqVkOXaxph0ZCXQcqxSpgQpONa59wkRDOL93eAXvimwlbPbwwVAegLS1HGfZAAAAABJRU5ErkJggg==') no-repeat left center;
+            background-size: 1em
+        }
+
+        input[type='checkbox'] {
+            float: left;
+            width: 20px
+        }
+
+        .table td {
+            padding: .5em;
+            text-align: left
+        }
+
+        .table tbody>:nth-child(2n-1) {
+            background: #ddd
+        }
+
+        fieldset {
+            border-radius: 0.5rem;
+            margin: 0px;
+        }
+
+        div.hidden {
+            display: none !important;
+        }
+    </style>
+    <script>
+        function c(l) {
+            document.getElementById('ssid').value = l.innerText || l.textContent;
+            document.getElementById('pwd').focus();
+        }
+    </script>
+    <script>
+        function menu(id) {
+            document.getElementById("menu").classList.add("hidden");
+            document.getElementById(id).classList.remove("hidden");
+            open[id]();
+            return false;
+        }
+        function back(id) {
+            document.getElementById("menu").classList.remove("hidden");
+            document.getElementById(id).classList.add("hidden");
+            reportStatus();
+            return false;
+        }
+        function getJson(url,method) {
+            if(method==undefined)method="GET";
+            let ret = new Promise((resolve, reject) => {
+                var xhr = new XMLHttpRequest();
+                xhr.open(method, url, true);
+                xhr.onload = (response) => {
+                    resolve(xhr)
+                }
+                xhr.onerror = (error) => {
+                    reject(error)
+                }
+                xhr.send();
+            })
+            return ret;
+        }
+
+        function getRSSIasQuality(RSSI) {
+            quality = 0;
+
+            if (RSSI <= -100) {
+                quality = 0;
+            }
+            else if (RSSI >= -50) {
+                quality = 100;
+            }
+            else {
+                quality = 2 * (RSSI + 100);
+            }
+            return quality;
+        }
+
+        function reloadWifi() {
+            getJson("/scan").then((response) => {
+                if (response.status == 200) {
+                    let nets = JSON.parse(response.response)
+                    if (nets.length == 0) {
+                        document.getElementById("nets").innerHTML = "Please wait until auto-Refresh...";
+                        setTimeout(reloadWifi, 10 * 1000)
+                        return
+                    }
+                    netStr = ""
+                    for (i = 0; i < nets.length; i++) {
+                        netStr += "<div><a href='#p' onclick='c(this)'>" + nets[i].ssid +
+                            "</a>&nbsp;<span class='q " + ((nets[i].encryption == 0) ? "" : "l") + "'>" +
+                            getRSSIasQuality(nets[i].rssi) + "%</span></div>";
+                    }
+                    document.getElementById("nets").innerHTML = netStr;
+                } else {
+                    alert("Error :" + response.status)
+                }
+            }).catch((reason) => { console.error(reason) })
+
+        }
+
+        function reportStatus(){
+            getJson("./status").then((response) => {
+                if (response.status == 200) {
+                    let status = JSON.parse(response.response)
+                    let menu = document.getElementById("menu")
+                    menu.querySelector("h2").textContent=status.name+" on "+status.wifi.SSID;
+
+                    let statusStr =""
+                    if(status.wifi.mode=="AP"){
+                        statusStr="AP Mode<br>"
+                    }else{
+                        statusStr="Conected to "+status.wifi.SSID+"<br>"
+                    }
+                    statusStr+="IP: "+status.wifi.ip+"<br>"
+                    statusStr+="HostName: "+status.wifi.hostname+"<br>"
+
+                    menu.querySelector("div.msg").innerHTML=statusStr
+                    document.querySelector("div#msg2").innerHTML=statusStr
+
+                    document.getElementById("ssid").setAttribute("placeholder",status.wifi.SSID);
+                    document.getElementById("ip").value=status.wifi.ip;
+                    document.getElementById("sn").value=status.wifi.nm;
+                    document.getElementById("gw").value=status.wifi.gw;
+                    document.getElementById("dns1").value=status.wifi.dns[0];
+                    document.getElementById("dns2").value=status.wifi.dns[1];
+
+                    document.getElementById("mode").value=status.wifi.mode
+                    document.getElementById("ipMode").value=status.wifi.staticIp?"static":"dhcp"
+                    updateIpView()
+                    
+                } else {
+                    alert("Error :" + response.status)
+                }
+            }).catch((reason) => { console.error(reason) })
+            
+        }
+
+        function saveWifi(){
+            var data = new FormData(document.getElementById("WifiSaveData"))
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "./wifisave", true);
+            xhr.onload = (response) => {
+                if (xhr.status == 200) {
+                    alert("Configuration Saved Correctly\nPlease Reconect")
+                }else{
+                    alert("Error in config: "+xhr.response)
+                }
+            }
+            xhr.onerror = (error) => {
+               alert("Error: "+(error!=undefined)?error:"");
+            }
+            //xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8;
+            xhr.send(data);
+
+        }
+        function updateIpView(){
+            if(document.getElementById("ipMode").value=="static"){
+                document.getElementById("staticIpForm").hidden=false;
+            }else{
+                document.getElementById("staticIpForm").hidden=true;
+            }
+        }
+        function reloadLoconet(){
+  
+        }
+
+        function reloadInfo(){
+            getJson("./info").then((response) => {
+                if (response.status == 200) {
+                    let info = JSON.parse(response.response)
+                    let keys = Object.keys(info);
+                    keys.map((value,index)=>{
+                        document.querySelector("td[role="+value+"]").innerText=info[value]
+                    });
+                    
+                } else {
+                    alert("Error :" + response.status)
+                }
+            }).catch((reason) => { console.error(reason) })
+        }
+        function reboot(){
+            getJson("./reset","POST").then((response) => {
+                if(response.status==200){
+                    alert(JSON.parse(response.response));
+                }else{
+                    alert("Error :" + response.status)
+                }
+            }).catch((reason) => { console.error(reason) })
+        }
+        var open = {
+            wifi: reloadWifi,
+            menu: reportStatus,
+            loconet:reloadLoconet,
+            info:reloadInfo
+        }
+
+    </script>
+</head>
+
+<body  onload="reportStatus()">
+    <div id='menu' class='container'>
+        <div style='text-align:left;display:inline-block;min-width:260px;'>
+            <h2> LB_ on SSID</h2>
+
+            <fieldset>
+                <form onsubmit="return false"><button onClick="menu('loconet')" class='btn'>LocoNet Configuration</button></form>
+                <br />
+                <form onsubmit="return false"><button onClick="menu('wifi')" class='btn'>WiFi Configuration</button></form>
+                <br />
+                <form onsubmit="return false"><button class='btn' onClick="menu('info')">Information</button></form><br />
+                <form onsubmit="return false"><button class='btn' onclick="reboot()">Reboot</button></form><br />
+                <div class="msg">
+                    reportStatus(page);
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div id='loconet' class='container hidden'>
+        <div style='text-align:left;display:inline-block;min-width:260px;'>
+            <button onClick="back('loconet')" style="width: fit-content;" class="btn">&lt;</button>
+            <h2 style="display: inline;">Loconet</h2>
+            <fieldset id="lnCfg">
+                LocoNet Configuration
+            </fieldset>
+        </div>
+    </div>
+
+    <div id='wifi' class='container hidden'>
+        <div style='text-align:left;display:inline-block;min-width:260px;'>
+            <button onClick="back('wifi')" style="width: fit-content;" class="btn">&lt;</button>
+            <h2 style="display: inline;">Configuration</h2>
+            <button onClick="reloadWifi()" style="width: fit-content;" class="btn">&#x27F3;</button>
+            <fieldset id="nets">
+                Network List
+            </fieldset>
+            <br>
+            <small>*Hint: To reuse the saved WiFi credentials, leave SSID and PWD fields empty</small>
+            <form id="WifiSaveData" onsubmit="return false">
+                <fieldset>
+                    <div><label>Mode</label>
+                        <select name="mode" id="mode">
+                            <option value="AP">AP</option>
+                            <option value="Client">Client</option>
+                        </select>
+                    </div>
+                    <div><label>SSID</label><input value='' id='ssid' name='ssid' length=32 placeholder='SSID'></div>
+                    <div><label>Password</label><input value='' id='pwd' name='pwd' length=64 type="password" placeholder='password'></div>
+                </fieldset>
+                <fieldset>
+                    <label>Mode</label>
+                    <select name="ipMode" id="ipMode" onchange="updateIpView()">
+                        <option value="dhcp">DHCP</option>
+                        <option value="static">Static</option>
+                    </select>
+                    <div id="staticIpForm">
+                        <label for='ip'>Static IP</label><input id='ip' name='ip' length=15 placeholder='Static IP'>
+                        <label for='gw'>Gateway IP</label><input id='gw' name='gw' length=15 placeholder='Gateway IP'>
+                        <label for='sn'>Subnet</label><input id='sn' name='sn' length=15 placeholder='Subnet'>
+                        <label for='dns1'>DNS1 IP</label><input id='dns1' name='dns1' length=15 placeholder='DNS1 IP'>
+                        <label for='dns2'>DNS2 IP</label><input id='dns2' name='dns2' length=15 placeholder='DNS2 IP'>
+                    </div>
+                </fieldset>
+                <button class='btn' onClick="saveWifi()">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <div id='info' class='container hidden'>
+        <div style='text-align:left;display:inline-block;min-width:260px;'>
+            <button onClick="back('info')" style="width: fit-content;" class="btn">&lt;</button>
+            <h2 style="display: inline;">WiFi Information</h2>
+            <div id="msg2"></div>
+            <fieldset id="lnCfg">
+                <h3>Device Data</h3>
+                <table class="table">
+                    <thead><tr><th>Name</th><th>Value</th></tr></thead><tbody>
+                        <tr><td>Chip ID</td><td role="chipId"></td></tr>
+                        <tr><td>Chip OUI</td><td role="chipOID"></td></tr>
+                        <tr><td>Chip Model</td><td role="chipModel"></td></tr>
+                        <tr><td>Flash Chip ID</td><td role="flashId"></td></tr>
+                        <tr><td>IDE Flash Size</td><td role="flashSize"></td></tr>
+                        <tr><td>Real Flash Size</td><td role="flashRealSize"></td></tr>
+                        <tr><td>Access Point IP</td><td role="apIP"></td></tr>
+                        <tr><td>Access Point MAC</td><td role="apMAC"></td></tr>
+                        <tr><td>Access Point SSID</td><td role="apSSID"></td></tr>
+                        <tr><td>Station IP</td><td role="staIP"></td></tr>
+                        <tr><td>Station MAC</td><td role="staMAC"></td></tr>
+                        <tr><td>Station SSID</td><td role="staSSID"></td></tr>
+                </tbody></table>
+            </fieldset>
+        </div>
+    </div>
+</body>
+
+</html>

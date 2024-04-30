@@ -1,0 +1,1 @@
+ npx http-server data/web -P http://192.168.4.1
