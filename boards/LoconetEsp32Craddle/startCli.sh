@@ -1,7 +1,7 @@
 #!/bin/sh
 LOCAL_BASE=$(git rev-parse --show-toplevel)
 SUBDIR=$(git rev-parse --show-prefix)
-KIBOT_DIR=$LOCAL_BASE/kibot
+KIBOT_DIR=$LOCAL_BASE/../kibot
 PASS_FILE=/etc/passwd
 export USER_ID=$(id -u)
 export GROUP_ID=$(id -g)
@@ -19,6 +19,7 @@ echo ${machine}
 if [ ! $machine == "Mac" ]
 then
     echo "This Script is for Mac Os"
+    exit 0
 fi
 
 if [ ! -d $KIBOT_DIR/docker.tmp/config ]
@@ -40,7 +41,7 @@ then
     echo "$USER:x:$USER_ID:$GROUP_ID:$USER:/home/$USER:/usr/sbin/nologin" >> $KIBOT_DIR/docker.tmp/passwd
 fi
 
-VERSION=ghcr.io/inti-cmnb/kicad7_auto_full:latest
+VERSION=ghcr.io/inti-cmnb/kicad10_auto_full:latest
 docker run --rm -it  \
     -v $LOCAL_BASE:/home/$USER/workdir \
     -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=host.docker.internal:0 \
@@ -49,12 +50,13 @@ docker run --rm -it  \
     --env USER=$USER \
     --env HOME=/home/$USER/ \
     --env KICAD_CONFIG_HOME=/home/$USER/.config/kicad \
-    --env-file $KIBOT_DIR/docker.env\
+    --env-file $KIBOT_DIR/kibot/docker.env\
     --workdir="/home/$USER/" \
     --volume="$KIBOT_DIR/docker.tmp/passwd:/etc/passwd:ro" \
     --volume="$KIBOT_DIR/docker.tmp/config:/home/$USER/.config:rw" \
     --volume="$KIBOT_DIR/docker.tmp/cache:/home/$USER/.cache:rw" \
     --volume="$KIBOT_DIR/docker.tmp/local:/home/$USER/.local:rw" \
+    --volume="$KIBOT_DIR/kibot:/home/$USER/kibot:rw" \
     --rm \
     --hostname kibot \
     $VERSION  /bin/bash -c "cd workdir/$SUBDIR; bash"

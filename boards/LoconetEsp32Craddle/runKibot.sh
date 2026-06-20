@@ -1,12 +1,5 @@
 #!/bin/bash
-KIBOT_DIR=$(git rev-parse --show-toplevel)
-RES=$?
-if [ $RES -eq 0 ] 
-then
-    KIBOT_DIR=$KIBOT_DIR/kibot
-else
-    KIBOT_DIR=/home/$USER/workdir/kibot
-fi    
+KIBOT_DIR=/home/$USER/kibot    
 #echo $KIBOT_DIR
 export PCBDRAW_LIB_PATH=$KIBOT_DIR/../
 rm -rf doc
@@ -27,7 +20,7 @@ then
     #If not found change manually.
     BOARD=LocoBuffer
 fi
-FILES="00_erc_drc.kibot.yaml 01_pdf_doc.kibot.yaml 02_build_doc.kibot.yaml 03_graphic_doc.kibot.yaml 04_fab_board.kibot.yaml 05_fab_pcba.kibot.yaml"  
+FILES="00_erc_drc.kibot.yaml 01_pdf_doc.kibot.yaml 02_build_doc.kibot.yaml 03_graphic_doc.kibot.yaml 04_fab_board.kibot.yaml 05_fab_pcba_jlcpcb.kibot.yaml"  
 
 #FILES="02_build_doc.kibot.yaml"  
 #FILES=""
