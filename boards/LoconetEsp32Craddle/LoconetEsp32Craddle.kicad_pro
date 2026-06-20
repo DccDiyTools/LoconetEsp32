@@ -76,7 +76,16 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        [
+          "courtyards_overlap|34734928|61913838|00000000-0000-0000-0000-0000606bd70f|0ccb3836-fa74-4146-8ac0-7bbcf86a0a70",
+          "Es posible"
+        ],
+        [
+          "lib_footprint_mismatch|77000000|93175000|5b69e1c4-b031-422b-aba0-395119301c3f|00000000-0000-0000-0000-000000000000",
+          ""
+        ]
+      ],
       "meta": {
         "filename": "board_design_settings.json",
         "version": 2
